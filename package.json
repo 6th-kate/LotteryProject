@@ -1,0 +1,26 @@
+{
+  "name": "lotteryproject",
+  "version": "1.0.0",
+  "description": "A solidity lottery project for web3 development course.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://6th-kate@github.com/6th-kate/LotteryProject.git"
+  },
+  "author": "Shestakova Ekaterina",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/6th-kate/LotteryProject/issues"
+  },
+  "homepage": "https://github.com/6th-kate/LotteryProject#readme",
+  "dependencies": {
+    "hardhat": "^2.12.4"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0"
+  }
+}
