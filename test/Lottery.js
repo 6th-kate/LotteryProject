@@ -27,8 +27,10 @@ describe("Lottery", function () {
 
   async function hashNumber(num, usr) {
     addr = await usr.getAddress();
-    const encoded = web3.eth.abi.encodeParameters(['uint256', 'address'], [num, addr]);
-    const hash = web3.utils.sha3(encoded, {encoding: 'hex'});
+    const hash = web3.utils.soliditySha3(
+      {t: 'uint256', v: num},
+      {t: 'address', v: addr},
+      );
     return hash;
   }
 
@@ -238,6 +240,138 @@ describe("Lottery", function () {
         );
 
         expect(await lottery.ticketsNumber()).to.be.equal(initialTicketsNumber - actualTicketsToBuyNumber);
+      });
+    });
+  });
+
+  describe("Reveal number", function () {
+    describe("Validations", function () {
+      it("Should revert with the right error if revealed hash does not equal to the committed", async function() {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await expect(lottery.connect(acc1).revealNumber(randomNum + 1)).to.be.revertedWith(
+          "Hash was incorrect"
+        );
+      });
+
+      it("Should not revert if revealed hash equals to the committed", async function() {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await expect(lottery.connect(acc1).revealNumber(randomNum)).not.to.be.reverted;
+      });
+    });
+
+    describe("Events", function () {
+      it("Should emit an event on number reveal", async function () {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await expect(lottery.connect(acc1).revealNumber(randomNum))
+          .to.emit(lottery, "Reveal")
+          .withArgs(await acc1.getAddress(), randomNum);
+      });
+    });
+
+    describe("Reveals", function () {
+      it("Should emit an event on number reveal", async function () {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await lottery.connect(acc1).revealNumber(randomNum);
+
+        expect(await lottery.randomNumber()).not.to.be.equal(0);
+        expect(await lottery.revealedNumber()).to.be.equal(1);
+      });
+    });
+  });
+
+  describe("Winner", function () {
+    describe("Validations", function () {
+      it("Should revert with the right error if not all players revealed their numbers", async function() {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await expect(lottery.payWinner()).to.be.revertedWith(
+          "Not all players revealed their numbers yet"
+        );
+      });
+
+      it("Should not revert if revealed hash equals to the committed", async function() {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await lottery.connect(acc1).revealNumber(randomNum);
+
+        await expect(lottery.payWinner()).not.to.be.reverted;
+      });
+    });
+
+    describe("Events", function () {
+      it("Should emit an event on number reveal", async function () {
+        const { lottery, acc1, ticketsNumber, ticketPrice } = await loadFixture(deploy100ticketsLotteryFixture);
+        lottery.startLottery();
+
+        const randomNum = 23456;
+
+        await lottery.connect(acc1).buyTickets(await hashNumber(randomNum, acc1), ticketsNumber, { value: ticketsNumber*ticketPrice })
+
+        const TWENTY_DAYS_IN_SECS = 20 * 24 * 60 * 60;
+        const lockTime = (await time.latest()) + TWENTY_DAYS_IN_SECS;
+        await time.increaseTo(lockTime);
+
+        await lottery.connect(acc1).revealNumber(randomNum);
+
+        await expect(lottery.payWinner())
+          .to.emit(lottery, "WinnerChosen")
+          .withArgs(await acc1.getAddress(), ticketsNumber*ticketPrice);
       });
     });
   });

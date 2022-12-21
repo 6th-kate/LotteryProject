@@ -180,7 +180,7 @@ contract Lottery {
         // Reset timers.
         commitsStart = 0;
         revealsStart = 0;
-        emit WinnerChosen(winner, maxTicketsNumber - ticketsNumber);
+        emit WinnerChosen(winner, ((maxTicketsNumber - ticketsNumber) * ticketPrice));
     }
 
     // Reset the lottery
