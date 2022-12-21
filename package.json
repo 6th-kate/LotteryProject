@@ -17,10 +17,13 @@
   },
   "homepage": "https://github.com/6th-kate/LotteryProject#readme",
   "dependencies": {
-    "hardhat": "^2.12.4"
+    "hardhat": "^2.12.4",
+    "keccak256": "^1.0.6"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.0"
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "web3": "^1.8.1"
   }
 }

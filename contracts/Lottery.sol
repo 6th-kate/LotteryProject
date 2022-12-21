@@ -60,7 +60,7 @@ contract Lottery {
 
     modifier CommitPhase {                                              // Commits Phase active and there are tickets left.
         require(commitsStart != 0 && block.timestamp < commitsStart + COMMIT_TIMEOUT, "Not in commmits phase");                 
-        require(ticketsNumber > 0,"All tickets sold, wait for the next lottery");
+        require(ticketsNumber > 0, "All tickets sold, wait for the next lottery");
         _;
     }
 
@@ -109,7 +109,7 @@ contract Lottery {
 
     // Anyone (not the owner), who have not yet bought the tickets, can buy them.
     function buyTickets(bytes32 _hashedNumber, uint _ticketsToBuyNumber) public CommitPhase NotOwnerNorRegisteredPlayer payable {
-        require(_ticketsToBuyNumber != 0, "Tickets number cannot be zero");
+        require(_ticketsToBuyNumber != 0, "Tickets number cannot be equal zero");
 
         // If there is not enought ether for tickets number, we take the maximal possible.
         uint maxTicketsPossible = _ticketsToBuyNumber * ticketPrice > msg.value ?
